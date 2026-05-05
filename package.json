@@ -1,0 +1,31 @@
+{
+  "name": "theme-screenshots",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Capture and review Discourse theme screenshots.",
+  "bin": {
+    "screenshot-themes": "src/cli.mjs",
+    "build-gallery": "src/gallery-builder.mjs"
+  },
+  "scripts": {
+    "screenshot-themes": "node src/cli.mjs",
+    "build-gallery": "node src/gallery-builder.mjs",
+    "verify-output": "node scripts/verify-output.mjs",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "check": "pnpm test && node scripts/verify-output.mjs"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "execa": "^9.6.0",
+    "playwright": "^1.54.2",
+    "sharp": "^0.33.5",
+    "yaml": "^2.5.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "vitest": "^2.1.9"
+  },
+  "packageManager": "pnpm@9.15.9"
+}

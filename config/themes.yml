@@ -1,0 +1,39 @@
+discourse:
+  repo_path: /Users/pmusaraj/Projects/discourse
+  base_url: https://disco2021.musaraj.com
+  admin_username: system
+
+screenshot:
+  width: 2560
+  height: 1440
+  format: webp
+  max_bytes: 1048576
+  routes:
+    - name: latest
+      path: /latest
+
+themes:
+  - id: discourse-verso
+    name: Discourse Verso
+    source:
+      type: git
+      url: https://github.com/pmusaraj/discourse-verso.git
+    modes: [light, dark]
+  - id: discourse-air
+    name: Discourse Air
+    source:
+      type: git
+      url: https://github.com/Discourse/discourse-air.git
+    modes: [light, dark]
+  - id: discourse-mint-theme
+    name: Discourse Mint Theme
+    source:
+      type: git
+      url: https://github.com/Discourse/discourse-mint-theme.git
+    modes: [light, dark]
+  - id: minima
+    name: Minima
+    source:
+      type: git
+      url: https://github.com/Discourse/minima.git
+    modes: [light, dark]

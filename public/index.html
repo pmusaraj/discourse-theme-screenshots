@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discourse Theme Screenshots</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Discourse</p>
+      <h1>Discourse Theme Screenshots</h1>
+      <p id="summary">Loading manifest…</p>
+    </div>
+    <label class="search"><span>Filter</span><input id="filter" type="search" placeholder="theme name or status"></label>
+  </header>
+  <main id="gallery" class="grid" aria-live="polite"></main>
+  <template id="empty"><section class="empty">No themes match the current filter.</section></template>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

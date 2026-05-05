@@ -1,0 +1,10 @@
+node_modules/
+.cache/
+.DS_Store
+.env
+.env.*
+!.env.example
+public/screenshots/
+public/data/manifest.json
+coverage/
+dist/
