@@ -22,18 +22,6 @@ themes:
       type: core
       theme: horizon
     modes: [light]
-  - id: discourse-verso
-    name: Discourse Verso
-    source:
-      type: git
-      url: https://github.com/pmusaraj/discourse-verso.git
-    modes: [light]
-  - id: air-theme
-    name: Air Theme
-    source:
-      type: git
-      url: https://github.com/Discourse/discourse-air.git
-    modes: [light]
   - id: mint-theme
     name: Mint Theme
     source:
@@ -46,13 +34,25 @@ themes:
       type: git
       url: https://github.com/Discourse/minima.git
     modes: [light]
-  - id: discourse-skills
-    name: Discourse Skills
+  - id: discourse-verso
+    name: Discourse Verso
     source:
       type: git
-      url: https://github.com/discourse/discourse-theme-skills.git
+      url: https://github.com/pmusaraj/discourse-verso.git
     modes: [light]
-  - id: accent
+  - id: discourse-summit
+    name: Summit
+    source:
+      type: git
+      url: https://github.com/pmusaraj/discourse-summit.git
+    modes: [light]
+  - id: discourse-finline
+    name: Finline
+    source:
+      type: git
+      url: https://github.com/pmusaraj/discourse-finline.git
+    modes: [light]
+  - id: discourse-accent
     name: Accent
     source:
       type: git
