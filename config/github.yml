@@ -2,7 +2,7 @@ discourse:
   repo_path: ../discourse
 
 screenshot:
-  subset: topic
+  devices: desktop
   dir: ../discourse/tmp/theme-screenshots-github
   width: 2560
   height: 1440

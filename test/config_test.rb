@@ -23,7 +23,8 @@ class ConfigTest < Minitest::Test
       assert_equal "/tmp/discourse", config.discourse["repo_path"]
       assert_equal "https://github.com/Discourse/minima.git", config.themes.first.theme_url
       assert_equal %w[light], config.themes.first.modes
-      assert_equal "topic", config.screenshot["subset"]
+      assert_nil config.screenshot["subset"]
+      assert_equal "desktop,mobile", config.screenshot["devices"]
     end
   end
 

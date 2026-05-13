@@ -10,7 +10,11 @@ on:
       subset:
         description: "Optional SCREENSHOTS_SUBSET override"
         required: false
-        default: topic
+        type: string
+      devices:
+        description: "Comma-separated SCREENSHOTS_DEVICES override"
+        required: false
+        default: desktop
         type: string
   schedule:
     - cron: "17 5 * * *"
@@ -122,7 +126,8 @@ jobs:
           RAILS_ENABLE_TEST_LOG: 1
           RAILS_TEST_LOG_LEVEL: error
           THEME_INPUT: ${{ github.event.inputs.theme }}
-          SUBSET_INPUT: ${{ github.event.inputs.subset || 'topic' }}
+          SUBSET_INPUT: ${{ github.event.inputs.subset }}
+          DEVICES_INPUT: ${{ github.event.inputs.devices || 'desktop' }}
         run: |
           args=(--config "$THEME_SCREENSHOTS_CONFIG" --out public)
           if [ -n "$THEME_INPUT" ]; then
@@ -130,6 +135,9 @@ jobs:
           fi
           if [ -n "$SUBSET_INPUT" ]; then
             args+=(--subset "$SUBSET_INPUT")
+          fi
+          if [ -n "$DEVICES_INPUT" ]; then
+            args+=(--devices "$DEVICES_INPUT")
           fi
           ruby bin/screenshot-themes "${args[@]}"
           ruby bin/verify-output --out public

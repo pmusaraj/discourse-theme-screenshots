@@ -53,7 +53,9 @@ function renderIndex() {
 
   const cacheBust = encodeURIComponent(manifest?.generatedAt ?? Date.now());
 
-  summary.textContent = manifest ? themes.length + ' themes · subset ' + manifest.screenshot?.subset + ' · generated ' + manifest.generatedAt : 'No manifest loaded';
+  const subsetLabel = manifest?.screenshot?.subset || 'all';
+  const devicesLabel = manifest?.screenshot?.devices || 'desktop,mobile';
+  summary.textContent = manifest ? themes.length + ' themes · subset ' + subsetLabel + ' · devices ' + devicesLabel + ' · generated ' + manifest.generatedAt : 'No manifest loaded';
 
   app.className = 'theme-grid';
 

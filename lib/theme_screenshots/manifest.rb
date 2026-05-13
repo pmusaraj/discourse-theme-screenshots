@@ -15,7 +15,8 @@ module ThemeScreenshots
           width: config.screenshot["width"],
           height: config.screenshot["height"],
           format: "png",
-          subset: config.screenshot["subset"] || "topic"
+          subset: config.screenshot["subset"],
+          devices: config.screenshot["devices"]
         },
         themes: config.themes.map do |theme|
           result = by_theme[theme.id] || { screenshots: {}, warnings: ["No result recorded"] }

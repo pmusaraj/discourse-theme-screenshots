@@ -12,9 +12,9 @@ class DiscourseRunnerTest < Minitest::Test
       source: { "type" => "git", "url" => "https://github.com/Discourse/minima.git" },
       modes: %w[light dark]
     )
-    runner = ThemeScreenshots::DiscourseRunner.new(repo_path: "/tmp/discourse", subset: "topic")
+    runner = ThemeScreenshots::DiscourseRunner.new(repo_path: "/tmp/discourse")
 
-    assert_equal "LOAD_PLUGINS=1 TAKE_SCREENSHOTS=1 SCREENSHOTS_SUBSET=\"topic\" SCREENSHOTS_THEMES=__remote_theme_only__ SCREENSHOTS_MODES=light,dark SCREENSHOTS_THEME_URL=https://github.com/Discourse/minima.git bin/rspec spec/system/theme_screenshots_spec.rb", runner.command_for(theme)
+    assert_equal "LOAD_PLUGINS=1 TAKE_SCREENSHOTS=1 SCREENSHOTS_THEMES=__remote_theme_only__ SCREENSHOTS_MODES=light,dark SCREENSHOTS_THEME_URL=https://github.com/Discourse/minima.git bin/rspec spec/system/theme_screenshots_spec.rb", runner.command_for(theme)
   end
 
   def test_command_supports_core_themes_and_explicit_screenshots_dir
@@ -27,9 +27,10 @@ class DiscourseRunnerTest < Minitest::Test
     runner = ThemeScreenshots::DiscourseRunner.new(
       repo_path: "/tmp/discourse",
       subset: "topic",
+      devices: "desktop",
       screenshots_dir: "/tmp/theme-output"
     )
 
-    assert_equal "LOAD_PLUGINS=1 TAKE_SCREENSHOTS=1 SCREENSHOTS_SUBSET=\"topic\" SCREENSHOTS_THEMES=foundation SCREENSHOTS_MODES=light SCREENSHOTS_DIR=/tmp/theme-output/foundation bin/rspec spec/system/theme_screenshots_spec.rb", runner.command_for(theme)
+    assert_equal "LOAD_PLUGINS=1 TAKE_SCREENSHOTS=1 SCREENSHOTS_THEMES=foundation SCREENSHOTS_MODES=light SCREENSHOTS_SUBSET=topic SCREENSHOTS_DEVICES=desktop SCREENSHOTS_DIR=/tmp/theme-output/foundation bin/rspec spec/system/theme_screenshots_spec.rb", runner.command_for(theme)
   end
 end

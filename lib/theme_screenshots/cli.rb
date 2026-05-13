@@ -11,20 +11,22 @@ module ThemeScreenshots
   class CLI
     def initialize(argv)
       @argv = argv.dup
-      @options = { config: "config/themes.yml", out: "public", dry_run: false, subset: nil, theme: nil }
+      @options = { config: "config/themes.yml", out: "public", dry_run: false, subset: nil, devices: nil, theme: nil }
     end
 
     def run
       parse!
       config = ConfigLoader.load(@options[:config])
       config.screenshot["subset"] = @options[:subset] if @options[:subset]
+      config.screenshot["devices"] = @options[:devices] if @options[:devices]
       themes = config.themes.select { |theme| @options[:theme].nil? || theme.id == @options[:theme] }
       raise ArgumentError, "No themes selected#{@options[:theme] ? " for #{@options[:theme]}" : ""}" if themes.empty?
 
       screenshots_dir = config.screenshot["dir"] || File.join(".cache", "discourse-screenshots")
       runner = DiscourseRunner.new(
         repo_path: config.discourse.fetch("repo_path"),
-        subset: config.screenshot["subset"] || "topic",
+        subset: config.screenshot["subset"],
+        devices: config.screenshot["devices"],
         container: config.discourse["container"],
         container_repo_path: config.discourse["container_repo_path"] || "/var/discourse",
         screenshots_dir: screenshots_dir
@@ -34,7 +36,8 @@ module ThemeScreenshots
         puts "Theme screenshot dry run"
         puts "Discourse repo: #{config.discourse.fetch("repo_path")}"
         puts "Output: #{File.expand_path(@options[:out])}"
-        puts "Subset: #{config.screenshot["subset"] || "topic"}"
+        puts "Subset: #{config.screenshot["subset"].to_s.empty? ? "all" : config.screenshot["subset"]}"
+        puts "Devices: #{config.screenshot["devices"]}"
         themes.each { |theme| puts "Command: #{runner.command_for(theme)}" }
         return
       end
@@ -69,6 +72,7 @@ module ThemeScreenshots
         opts.on("--out DIR", "output directory") { |value| @options[:out] = value }
         opts.on("--theme ID", "only run one theme id") { |value| @options[:theme] = value }
         opts.on("--subset LABEL", "SCREENSHOTS_SUBSET value") { |value| @options[:subset] = value }
+        opts.on("--devices LIST", "SCREENSHOTS_DEVICES value") { |value| @options[:devices] = value }
         opts.on("--dry-run", "print commands without running rspec") { @options[:dry_run] = true }
       end.parse!(@argv)
     end

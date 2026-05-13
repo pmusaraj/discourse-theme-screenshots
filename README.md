@@ -24,7 +24,8 @@ To enable the deployed site in GitHub:
 Manual workflow inputs:
 
 - `theme`: optional theme id from `config/github.yml`, for example `minima`.
-- `subset`: optional `SCREENSHOTS_SUBSET` override; defaults to `topic`.
+- `subset`: optional `SCREENSHOTS_SUBSET` override. Leave blank to capture all markers.
+- `devices`: optional comma-separated `SCREENSHOTS_DEVICES` override. The GitHub workflow defaults to `desktop` to keep scheduled captures fast.
 
 ## Theme configuration
 

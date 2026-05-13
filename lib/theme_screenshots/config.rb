@@ -31,7 +31,7 @@ module ThemeScreenshots
       "height" => 1440,
       "format" => "png",
       "max_bytes" => 1_048_576,
-      "subset" => "topic"
+      "devices" => "desktop,mobile"
     }.freeze
 
     def self.load(path = "config/themes.yml")

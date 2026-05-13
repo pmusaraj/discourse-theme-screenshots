@@ -11,9 +11,10 @@ module ThemeScreenshots
 
     Result = Struct.new(:theme, :success, :status, :output, :started_at, :finished_at, keyword_init: true)
 
-    def initialize(repo_path:, subset: "topic", env: {}, io: $stdout, container: nil, container_repo_path: "/var/discourse", screenshots_dir: nil)
+    def initialize(repo_path:, subset: nil, devices: nil, env: {}, io: $stdout, container: nil, container_repo_path: "/var/discourse", screenshots_dir: nil)
       @repo_path = File.expand_path(repo_path)
       @subset = subset
+      @devices = devices
       @env = env
       @io = io
       @container = container
@@ -26,10 +27,11 @@ module ThemeScreenshots
       parts = [
         "LOAD_PLUGINS=#{env.fetch("LOAD_PLUGINS")}",
         "TAKE_SCREENSHOTS=#{env.fetch("TAKE_SCREENSHOTS")}",
-        "SCREENSHOTS_SUBSET=\"#{env.fetch("SCREENSHOTS_SUBSET")}\"",
         "SCREENSHOTS_THEMES=#{Shellwords.escape(env.fetch("SCREENSHOTS_THEMES"))}",
         "SCREENSHOTS_MODES=#{Shellwords.escape(env.fetch("SCREENSHOTS_MODES"))}"
       ]
+      parts << "SCREENSHOTS_SUBSET=#{Shellwords.escape(env.fetch("SCREENSHOTS_SUBSET"))}" if env["SCREENSHOTS_SUBSET"]
+      parts << "SCREENSHOTS_DEVICES=#{Shellwords.escape(env.fetch("SCREENSHOTS_DEVICES"))}" if env["SCREENSHOTS_DEVICES"]
       parts << "SCREENSHOTS_THEME_URL=#{Shellwords.escape(env.fetch("SCREENSHOTS_THEME_URL"))}" if env["SCREENSHOTS_THEME_URL"]
       parts << "SCREENSHOTS_DIR=#{Shellwords.escape(env.fetch("SCREENSHOTS_DIR"))}" if env["SCREENSHOTS_DIR"]
       "#{parts.join(" ")} bin/rspec #{SPEC_PATH}"
@@ -110,10 +112,11 @@ module ThemeScreenshots
       env = @env.merge(
         "LOAD_PLUGINS" => "1",
         "TAKE_SCREENSHOTS" => "1",
-        "SCREENSHOTS_SUBSET" => @subset.to_s,
         "SCREENSHOTS_THEMES" => theme.core? ? (theme.source["theme"] || theme.id) : "__remote_theme_only__",
         "SCREENSHOTS_MODES" => Array(theme.modes).join(",")
       )
+      env["SCREENSHOTS_SUBSET"] = @subset.to_s unless @subset.to_s.empty?
+      env["SCREENSHOTS_DEVICES"] = @devices.to_s unless @devices.to_s.empty?
       env["SCREENSHOTS_THEME_URL"] = theme.theme_url unless theme.core?
       env["SCREENSHOTS_DIR"] = File.join(@screenshots_dir, theme.id) if @screenshots_dir
       env
