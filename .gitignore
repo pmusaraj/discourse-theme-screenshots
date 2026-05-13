@@ -4,7 +4,10 @@ node_modules/
 .env
 .env.*
 !.env.example
+public/themes/
 public/screenshots/
 public/data/manifest.json
 coverage/
 dist/
+/vendor/bundle/
+.hermes

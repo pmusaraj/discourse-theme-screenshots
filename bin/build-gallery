@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/theme_screenshots/gallery_builder"
+
+out_dir = "public"
+OptionParser.new do |opts|
+  opts.on("--out DIR") { |value| out_dir = value }
+end.parse!(ARGV)
+
+ThemeScreenshots::GalleryBuilder.new(out_dir: out_dir).build
+puts "Gallery written to #{out_dir}"

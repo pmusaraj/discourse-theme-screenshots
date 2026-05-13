@@ -1,59 +1,32 @@
 discourse:
-  repo_path: /Users/pmusaraj/Projects/discourse
-  base_url: https://disco2021.musaraj.com
-  admin_username: system
+  repo_path: ../discourse
 
 screenshot:
+  subset: topic
+  dir: ../discourse/tmp/theme-screenshots-github
   width: 2560
   height: 1440
-  format: webp
+  format: png
   max_bytes: 1048576
-  routes:
-    - name: latest
-      path: /latest
 
 themes:
   - id: foundation
     name: Foundation
     source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse/themes/foundation
+      type: core
+      theme: foundation
     modes: [light]
   - id: horizon
     name: Horizon
     source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse/themes/horizon
+      type: core
+      theme: horizon
     modes: [light]
   - id: discourse-verso
     name: Discourse Verso
     source:
       type: git
       url: https://github.com/pmusaraj/discourse-verso.git
-    modes: [light]
-  - id: zleek
-    name: zleek
-    source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse-zleek
-    modes: [light]
-  - id: finline
-    name: Finline
-    source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse-finline
-    modes: [light]
-  - id: technik
-    name: Technik
-    source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse-technik
-    modes: [light]
-  - id: summit
-    name: Summit
-    source:
-      type: local
-      path: /Users/pmusaraj/Projects/discourse-summit
     modes: [light]
   - id: air-theme
     name: Air Theme

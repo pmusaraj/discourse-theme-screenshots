@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/theme_screenshots/output_verifier"
+
+out_dir = "public"
+OptionParser.new do |opts|
+  opts.on("--out DIR") { |value| out_dir = value }
+end.parse!(ARGV)
+
+result = ThemeScreenshots::OutputVerifier.new(out_dir: out_dir).verify
+result[:warnings].each { |warning| warn "warn: #{warning}" }
+if result[:errors].any?
+  result[:errors].each { |error| warn "error: #{error}" }
+  exit 1
+end
+puts "Output verified in #{out_dir}"

@@ -1,117 +1,129 @@
 # Theme Screenshots
 
-Standalone Node.js tooling for preparing Discourse theme sources, capturing light/dark screenshots, validating the Discourse screenshot spec, and building a static review gallery.
+Ruby tooling for running Discourse core's theme screenshot system spec for a configured list of themes, collecting the generated PNGs, and publishing a static review gallery.
 
-## What it creates
+The screenshot capture itself lives in the Discourse repository (`spec/system/theme_screenshots_spec.rb`). This repo provides:
 
-For each configured theme the default sample workflow writes:
+- a theme list in YAML (`config/themes.yml` locally, `config/github.yml` in GitHub Actions)
+- scheduled/manual GitHub Actions that capture screenshots
+- a static webpage in `public/` that displays the generated screenshots
 
-- `public/screenshots/<theme-id>/light.webp`
-- `public/screenshots/<theme-id>/dark.webp`
-- `public/data/manifest.json`
-- a static gallery in `public/index.html`, `public/app.js`, and `public/styles.css`
+## GitHub Actions
 
-The screenshots honor the Discourse theme screenshot convention: 16:9 WebP images, recommended `2560x1440`, ideally under 1MB, with theme repos eventually containing:
+Two workflows are included:
 
-```json
-{
-  "screenshots": ["screenshots/light.webp", "screenshots/dark.webp"]
-}
+- `.github/workflows/checks.yml` — runs Ruby tests and verifies the static gallery shell on push/PR.
+- `.github/workflows/theme-screenshots.yml` — runs nightly and via `workflow_dispatch`, checks out `discourse/discourse`, runs the Discourse screenshot spec for every theme in `config/github.yml`, uploads `public/` as an artifact, and deploys it to GitHub Pages from `main`.
+
+To enable the deployed site in GitHub:
+
+1. Push this repo to GitHub.
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**.
+3. Run **Actions → Theme screenshots → Run workflow** once, or wait for the nightly schedule.
+
+Manual workflow inputs:
+
+- `theme`: optional theme id from `config/github.yml`, for example `minima`.
+- `subset`: optional `SCREENSHOTS_SUBSET` override; defaults to `topic`.
+
+## Theme configuration
+
+`config/github.yml` is intentionally GitHub-runnable: it uses public git URLs and Discourse core themes only.
+
+Supported theme sources:
+
+```yaml
+# Discourse core theme
+- id: foundation
+  name: Foundation
+  source:
+    type: core
+    theme: foundation
+
+# Remote git theme
+- id: minima
+  name: Minima
+  source:
+    type: git
+    url: https://github.com/Discourse/minima.git
+
+# Local-only theme, useful for development on this Mac
+- id: zleek
+  name: zleek
+  source:
+    type: local
+    path: /Users/pmusaraj/Projects/discourse-zleek
 ```
 
-## Prerequisites
+`config/themes.yml` remains the local configuration and can include local paths. Local themes are snapshotted into temporary git repositories before Discourse imports them.
 
-- Node.js and pnpm
+## Local prerequisites
+
+- Ruby
 - Local Discourse repository at `/Users/pmusaraj/Projects/discourse`
-- Optional for live capture: reachable Discourse instance at `https://disco2021.musaraj.com`
-- Optional for live capture: `pnpm exec playwright install chromium`
+- Discourse core must include `spec/system/theme_screenshots_spec.rb`
+- The Discourse test environment must be ready to run system specs
 
-No GitHub API token is required. Theme sources are cloned with public HTTPS git URLs into this project's `.cache/` directory.
+## Local usage
 
-## Install
+Dry-run the exact Discourse commands:
 
 ```bash
-pnpm install
+bin/screenshot-themes --config config/themes.yml --dry-run
 ```
 
-## Basic deterministic sample run
-
-Sample mode is the default and does not mutate Discourse or any theme repository.
+Run screenshots and build the gallery:
 
 ```bash
-pnpm screenshot-themes -- --config config/themes.yml --out public
-pnpm verify-output
+bin/screenshot-themes --config config/themes.yml --out public
+bin/verify-output --out public
+```
+
+Run one theme:
+
+```bash
+bin/screenshot-themes --config config/themes.yml --theme minima --out public
+```
+
+Override the subset, if needed:
+
+```bash
+bin/screenshot-themes --config config/themes.yml --subset topic-list --out public
+```
+
+Open the gallery with any static file server:
+
+```bash
 python3 -m http.server 8123 --directory public
 ```
 
-Open `http://127.0.0.1:8123` to review the gallery.
+Then visit `http://127.0.0.1:8123`.
 
-## Dry run
+## Output
 
-```bash
-pnpm screenshot-themes -- --config config/themes.yml --dry-run
-```
-
-This prints planned theme jobs, modes, source cache locations, viewport, and output paths without cloning or writing screenshots.
-
-## Live browser capture
-
-Live capture is opt-in. It still avoids risky Discourse DB mutations unless installation is explicitly enabled.
-
-```bash
-pnpm exec playwright install chromium
-pnpm screenshot-themes -- --config config/themes.yml --no-sample --skip-install --out public
-```
-
-To call the safe install adapter in dry-run style:
-
-```bash
-pnpm screenshot-themes -- --config config/themes.yml --no-sample --install --dry-run
-```
-
-The current install adapter is intentionally conservative: it validates intent and reports what would be needed instead of mutating the local Discourse DB by default.
-
-## Configuration
-
-`config/themes.yml` initially includes exactly:
-
-- `pmusaraj/discourse-verso`
-- `Discourse/discourse-air`
-- `Discourse/discourse-mint-theme`
-- `Discourse/minima`
-
-Git `ref` is optional and omitted for these repos so the default branch remains flexible.
-
-## Verification
-
-```bash
-pnpm test
-pnpm verify-output
-pnpm screenshot-themes -- --config config/themes.yml --dry-run
-```
-
-`verify-output` checks the manifest, referenced screenshot files, dimensions, 16:9 ratio, size budget warnings, and gallery assets.
-
-## Copying screenshots back to a theme
-
-After reviewing generated images, copy them manually into a theme repo:
+For each theme, the collector copies generated PNGs into:
 
 ```text
-theme-root/screenshots/light.webp
-theme-root/screenshots/dark.webp
+public/themes/<theme-id>/raw/*.png
 ```
 
-Then update `about.json` to include:
+It writes:
 
-```json
-{
-  "screenshots": ["screenshots/light.webp", "screenshots/dark.webp"]
-}
+```text
+public/data/manifest.json
+public/index.html
+public/app.js
+public/styles.css
 ```
 
-## Troubleshooting
+The gallery shows a light-mode homepage preview and links to all raw screenshots copied for each theme. Individual theme pages split desktop and mobile screenshots into horizontal carousels.
 
-- **Discourse not reachable:** use default sample mode, or verify the `discourse.base_url` URL and tunnel.
-- **Theme install failure:** use `--skip-install`; install/activation is isolated and conservative by design.
-- **Screenshot over 1MB:** the optimizer lowers WebP quality to a floor and records warnings if the target is still exceeded.
-- **Dark mode not applying:** live mode uses best-effort localStorage, media emulation, and Discourse color-scheme helpers; verify manually in the gallery.
+## Development
+
+All automation in this repo is Ruby:
+
+```bash
+ruby -Itest -e 'Dir["test/**/*_test.rb"].sort.each { |file| require_relative file }'
+# or
+bundle exec rake test
+```

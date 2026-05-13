@@ -4,19 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Discourse Theme Screenshots</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=source-ratio-carousel-20260513">
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Discourse</p>
-      <h1>Discourse Theme Screenshots</h1>
-      <p id="summary">Loading manifest…</p>
-    </div>
-    <label class="search"><span>Filter</span><input id="filter" type="search" placeholder="theme name or status"></label>
+  <header class="site-header">
+    <p class="eyebrow">Discourse theme screenshots</p>
+    <h1>Theme screenshots</h1>
+    <p id="summary">Loading manifest…</p>
   </header>
-  <main id="gallery" class="grid" aria-live="polite"></main>
-  <template id="empty"><section class="empty">No themes match the current filter.</section></template>
-  <script type="module" src="app.js"></script>
+  <main id="app" aria-live="polite"></main>
+  <script src="app.js?v=source-ratio-carousel-20260513"></script>
 </body>
 </html>
