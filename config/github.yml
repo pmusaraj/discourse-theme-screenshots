@@ -34,8 +34,19 @@ themes:
       type: git
       url: https://github.com/Discourse/minima.git
     modes: [light]
+  - id: material
+    name: Material Design Theme
+    source:
+      type: git
+      url: https://github.com/discourse/material-design-stock-theme.git
+    modes: [light]
+  - id: discourse-air
+    name: Air THeme
+    source:
+      type: git
+      url: https://github.com/discourse/discourse-air.git
   - id: discourse-verso
-    name: Discourse Verso
+    name: Verso
     source:
       type: git
       url: https://github.com/pmusaraj/discourse-verso.git

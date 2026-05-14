@@ -14,7 +14,7 @@ on:
       devices:
         description: "Comma-separated SCREENSHOTS_DEVICES override"
         required: false
-        default: desktop
+        default: desktop,mobile
         type: string
   schedule:
     - cron: "17 5 * * *"
