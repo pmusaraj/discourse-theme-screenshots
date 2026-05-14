@@ -53,9 +53,7 @@ function renderIndex() {
 
   const cacheBust = encodeURIComponent(manifest?.generatedAt ?? Date.now());
 
-  const subsetLabel = manifest?.screenshot?.subset || 'all';
-  const devicesLabel = manifest?.screenshot?.devices || 'desktop,mobile';
-  summary.textContent = manifest ? themes.length + ' themes · subset ' + subsetLabel + ' · devices ' + devicesLabel + ' · generated ' + manifest.generatedAt : 'No manifest loaded';
+  summary.textContent = manifest ? themes.length + ' themes · subset ' + manifest.screenshot?.subset + ' · generated ' + manifest.generatedAt : 'No manifest loaded';
 
   app.className = 'theme-grid';
 
@@ -113,7 +111,7 @@ function renderTheme(theme) {
 
 function groupScreenshots(files) {
 
-  return files.reduce((groups, src) => {
+  const groups = files.reduce((groups, src) => {
 
     const name = src.split('/').pop() || src;
 
@@ -124,6 +122,48 @@ function groupScreenshots(files) {
     return groups;
 
   }, { desktop: [], mobile: [] });
+
+  groups.desktop = sortScreenshotFiles(groups.desktop);
+
+  groups.mobile = sortScreenshotFiles(groups.mobile);
+
+  return groups;
+
+}
+
+function sortScreenshotFiles(files) {
+
+  const remaining = [...files].sort(compareScreenshotNames);
+
+  const prioritized = ['topic-list', 'composer-new-topic', 'topic-rich-content'].flatMap((suffix) => {
+
+    const index = remaining.findIndex((src) => screenshotBaseName(src).endsWith(suffix));
+
+    if (index === -1) return [];
+
+    return remaining.splice(index, 1);
+
+  });
+
+  return prioritized.concat(remaining);
+
+}
+
+function compareScreenshotNames(left, right) {
+
+  return screenshotFileName(left).localeCompare(screenshotFileName(right));
+
+}
+
+function screenshotBaseName(src) {
+
+  return screenshotFileName(src).replace(/.png$/, '');
+
+}
+
+function screenshotFileName(src) {
+
+  return src.split('/').pop() || src;
 
 }
 

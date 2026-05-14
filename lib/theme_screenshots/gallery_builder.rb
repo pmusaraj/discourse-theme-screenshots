@@ -11,7 +11,7 @@ module ThemeScreenshots
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Discourse Theme Screenshots</title>
-        <link rel="stylesheet" href="styles.css?v=source-ratio-carousel-20260513">
+        <link rel="stylesheet" href="styles.css?v=priority-order-v2-carousel-20260513">
       </head>
       <body>
         <header class="site-header">
@@ -20,7 +20,7 @@ module ThemeScreenshots
           <p id="summary">Loading manifest…</p>
         </header>
         <main id="app" aria-live="polite"></main>
-        <script src="app.js?v=source-ratio-carousel-20260513"></script>
+        <script src="app.js?v=priority-order-v2-carousel-20260513"></script>
       </body>
       </html>
 
@@ -140,7 +140,7 @@ module ThemeScreenshots
 
       function groupScreenshots(files) {
 
-        return files.reduce((groups, src) => {
+        const groups = files.reduce((groups, src) => {
 
           const name = src.split('/').pop() || src;
 
@@ -151,6 +151,48 @@ module ThemeScreenshots
           return groups;
 
         }, { desktop: [], mobile: [] });
+
+        groups.desktop = sortScreenshotFiles(groups.desktop);
+
+        groups.mobile = sortScreenshotFiles(groups.mobile);
+
+        return groups;
+
+      }
+
+      function sortScreenshotFiles(files) {
+
+        const remaining = [...files].sort(compareScreenshotNames);
+
+        const prioritized = ['topic-list', 'composer-new-topic', 'topic-rich-content'].flatMap((suffix) => {
+
+          const index = remaining.findIndex((src) => screenshotBaseName(src).endsWith(suffix));
+
+          if (index === -1) return [];
+
+          return remaining.splice(index, 1);
+
+        });
+
+        return prioritized.concat(remaining);
+
+      }
+
+      function compareScreenshotNames(left, right) {
+
+        return screenshotFileName(left).localeCompare(screenshotFileName(right));
+
+      }
+
+      function screenshotBaseName(src) {
+
+        return screenshotFileName(src).replace(/\.png$/, '');
+
+      }
+
+      function screenshotFileName(src) {
+
+        return src.split('/').pop() || src;
 
       }
 
