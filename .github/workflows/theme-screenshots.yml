@@ -146,6 +146,7 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: theme-screenshots/public
+          retention-days: 2
 
       - name: Upload raw screenshot artifact
         uses: actions/upload-artifact@v7
@@ -154,6 +155,7 @@ jobs:
           name: theme-screenshots-public
           if-no-files-found: ignore
           path: theme-screenshots/public
+          retention-days: 2
 
   deploy:
     if: github.ref == 'refs/heads/main'
