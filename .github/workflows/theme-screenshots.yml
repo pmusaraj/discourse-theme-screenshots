@@ -127,7 +127,7 @@ jobs:
           RAILS_TEST_LOG_LEVEL: error
           THEME_INPUT: ${{ github.event.inputs.theme }}
           SUBSET_INPUT: ${{ github.event.inputs.subset }}
-          DEVICES_INPUT: ${{ github.event.inputs.devices || 'desktop' }}
+          DEVICES_INPUT: ${{ github.event.inputs.devices || 'desktop,mobile' }}
         run: |
           args=(--config "$THEME_SCREENSHOTS_CONFIG" --out public)
           if [ -n "$THEME_INPUT" ]; then
