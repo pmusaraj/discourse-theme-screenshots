@@ -1,0 +1,63 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "json"
+require "time"
+require_relative "../lib/theme_screenshots/config"
+require_relative "../lib/theme_screenshots/gallery_builder"
+require_relative "../lib/theme_screenshots/gallery_preset"
+require_relative "../lib/theme_screenshots/manifest"
+
+config_path, shards, out = ARGV
+abort "Usage: bin/merge-gallery CONFIG SHARDS_DIR OUT_DIR" unless ARGV.size == 3
+config = ThemeScreenshots::ConfigLoader.load(config_path)
+expected = config.themes.to_h { |theme| [theme.id, theme] }
+devices = config.screenshot.fetch("devices")
+entries = {}
+paths = Dir.glob(File.join(shards, "*/data/manifest.json"))
+abort "Expected exactly three screenshot shard manifests" unless paths.size == 3
+
+paths.each do |path|
+  manifest = JSON.parse(File.read(path))
+  metadata = manifest.fetch("screenshot")
+  unless metadata.values_at("subset", "devices") == [ThemeScreenshots::GalleryPreset::NAME, devices]
+    abort "Unexpected screenshot settings: #{path}"
+  end
+
+  root = File.dirname(File.dirname(path))
+  manifest.fetch("themes").each do |entry|
+    id = entry.fetch("id")
+    abort "Unexpected or duplicate theme: #{id}" unless expected.key?(id) && !entries.key?(id)
+    abort "Capture failed for #{id}" unless entry.fetch("status") == "ok" && entry.fetch("warnings").empty?
+
+    files = entry.fetch("rawFiles")
+    missing = ThemeScreenshots::GalleryPreset.missing(files, devices: devices.split(",").map(&:strip), modes: expected.fetch(id).modes)
+    abort "Missing #{id} screenshots: #{missing.join(', ')}" unless missing.empty?
+    abort "Invalid preview for #{id}" unless (entry.fetch("screenshots").values - files).empty?
+    prefix = "themes/#{id}/raw/"
+    files.each do |file|
+      unless file.start_with?(prefix) && File.dirname(file) == File.dirname(prefix + "file") && file.end_with?(".png") && File.file?(File.join(root, file))
+        abort "Missing or invalid screenshot for #{id}: #{file}"
+      end
+    end
+    entries[id] = [entry, root]
+  end
+end
+
+abort "Missing themes: #{(expected.keys - entries.keys).join(', ')}" unless entries.size == expected.size
+entries.each_value do |entry, root|
+  entry.fetch("rawFiles").each do |file|
+    destination = File.join(out, file)
+    FileUtils.mkdir_p(File.dirname(destination))
+    FileUtils.cp(File.join(root, file), destination)
+  end
+end
+
+config.screenshot["subset"] = ThemeScreenshots::GalleryPreset::NAME
+manifest = ThemeScreenshots::Manifest.build(config: config, results: [])
+manifest[:themes] = expected.keys.map { |id| entries.fetch(id).first }
+ThemeScreenshots::Manifest.write(File.join(out, "data", "manifest.json"), manifest)
+ThemeScreenshots::GalleryBuilder.new(out_dir: out).build
+FileUtils.touch(File.join(out, ".nojekyll"))
+puts "Merged #{entries.size} themes into #{out}"

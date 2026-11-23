@@ -13,7 +13,7 @@ The screenshot capture itself lives in the Discourse repository (`spec/system/th
 Two workflows are included:
 
 - `.github/workflows/checks.yml` — runs Ruby tests and verifies the static gallery shell on push/PR.
-- `.github/workflows/theme-screenshots.yml` — runs nightly and via `workflow_dispatch`, checks out `discourse/discourse`, runs the Discourse screenshot spec for every theme in `config/github.yml`, uploads `public/` as an artifact, and deploys it to GitHub Pages from `main`.
+- `.github/workflows/theme-screenshots.yml` — runs nightly and via `workflow_dispatch`. Three parallel jobs split the themes in `config/github.yml` (currently 4 / 3 / 3). A full run on `main` merges the artifacts and deploys to GitHub Pages only after all three jobs pass. Partial manual runs upload artifacts without replacing the gallery.
 
 To enable the deployed site in GitHub:
 
@@ -24,7 +24,7 @@ To enable the deployed site in GitHub:
 Manual workflow inputs:
 
 - `theme`: optional theme id from `config/github.yml`, for example `minima`.
-- `subset`: optional `SCREENSHOTS_SUBSET` override. Leave blank to capture all markers.
+- `subset`: optional marker substring. Leave blank (or use `gallery`) for the default preset: topic list, categories, a rich-content topic, the new-topic composer, and login on both devices, plus a chat reply and the admin dashboard on desktop.
 - `devices`: optional comma-separated `SCREENSHOTS_DEVICES` override. The GitHub workflow defaults to `desktop,mobile`.
 
 ## Theme configuration

@@ -8,7 +8,7 @@ on:
         required: false
         type: string
       subset:
-        description: "Optional SCREENSHOTS_SUBSET override"
+        description: "Optional marker substring (default: gallery preset)"
         required: false
         type: string
       devices:
@@ -44,6 +44,11 @@ env:
 
 jobs:
   capture:
+    name: Capture shard ${{ matrix.shard }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(inputs.theme != '' && '[0]' || '[0,1,2]') }}
     runs-on: ubuntu-latest
     container: discourse/discourse_test:release
     timeout-minutes: 120
@@ -139,14 +144,15 @@ jobs:
           RAILS_TEST_LOG_LEVEL: error
           THEME_INPUT: ${{ github.event.inputs.theme }}
           SUBSET_INPUT: ${{ github.event.inputs.subset }}
-          DEVICES_INPUT: ${{ github.event.inputs.devices || 'desktop,mobile' }}
+          DEVICES_INPUT: ${{ inputs.devices }}
+          SHARD: ${{ matrix.shard }}
         run: |
-          args=(--config "$THEME_SCREENSHOTS_CONFIG" --out public)
+          ruby bin/install-gallery-preset ../discourse
+          args=(--config "$THEME_SCREENSHOTS_CONFIG" --out public --subset "${SUBSET_INPUT:-gallery}")
           if [ -n "$THEME_INPUT" ]; then
             args+=(--theme "$THEME_INPUT")
-          fi
-          if [ -n "$SUBSET_INPUT" ]; then
-            args+=(--subset "$SUBSET_INPUT")
+          else
+            args+=(--shard "$SHARD")
           fi
           if [ -n "$DEVICES_INPUT" ]; then
             args+=(--devices "$DEVICES_INPUT")
@@ -154,24 +160,39 @@ jobs:
           ruby bin/screenshot-themes "${args[@]}"
           ruby bin/verify-output --out public
 
-      - name: Upload screenshot site artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: theme-screenshots/public
-          retention-days: 2
-
       - name: Upload raw screenshot artifact
         uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: theme-screenshots-public
+          name: theme-screenshots-shard-${{ matrix.shard }}
           if-no-files-found: ignore
           path: theme-screenshots/public
           retention-days: 2
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
+  assemble:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || (inputs.theme == '' && (inputs.subset == '' || inputs.subset == 'gallery') && (inputs.devices == '' || inputs.devices == 'desktop,mobile')))
     needs: capture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: theme-screenshots-shard-*
+          path: shards
+      - name: Merge and verify gallery
+        run: |
+          ruby bin/merge-gallery config/github.yml shards public
+          ruby bin/verify-output --out public
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public
+          retention-days: 2
+
+  deploy:
+    needs: assemble
     runs-on: ubuntu-latest
     environment:
       name: github-pages

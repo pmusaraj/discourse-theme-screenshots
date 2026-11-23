@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require_relative "../lib/theme_screenshots/gallery_preset"
+
+repo = File.expand_path(ARGV.fetch(0))
+labels = ThemeScreenshots::GalleryPreset::LABELS.inspect
+
+# Fail explicitly if Discourse changes either integration point.
+def replace_once(source, old, new)
+  raise "Discourse screenshot preset integration point changed: #{old}" unless source.scan(old).size == 1
+
+  source.sub(old) { new }
+end
+
+spec = File.join(repo, "spec/system/theme_screenshots_spec.rb")
+marker = File.join(repo, "spec/support/theme_screenshot_marker.rb")
+spec_source = replace_once(File.read(spec), "    specs = discover_marker_specs\n", <<~RUBY.lines.map { |line| "    #{line}" }.join)
+  specs = discover_marker_specs
+  if ENV["SCREENSHOTS_SUBSET"] == "gallery"
+    specs.select! do |file|
+      screenshot_example_constraints(file).values.any? do |constraint|
+        (constraint[:labels] & #{labels}).any?
+      end
+    end
+  end
+RUBY
+spec_source = replace_once(spec_source,
+  "      next false if subset && constraint[:labels].none? { |l| l.include?(subset) }",
+  "      if subset == \"gallery\"\n        next false if (constraint[:labels] & #{labels}).empty?\n" \
+  "      elsif subset\n        next false if constraint[:labels].none? { |l| l.include?(subset) }\n      end")
+marker_source = replace_once(File.read(marker), '    return unless ENV["TAKE_SCREENSHOTS"] == "1"',
+  "    return unless ENV[\"TAKE_SCREENSHOTS\"] == \"1\"\n" \
+  "    return if ENV[\"SCREENSHOTS_SUBSET\"] == \"gallery\" && !#{labels}.include?(label)")
+
+File.write(spec, spec_source)
+File.write(marker, marker_source)
+FileUtils.cp(File.expand_path("../ci/admin_dashboard_screenshot_spec.rb", __dir__),
+  File.join(repo, "spec/system/gallery_admin_dashboard_spec.rb"))
