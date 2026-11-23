@@ -75,9 +75,14 @@ jobs:
           git config --global user.email "ci@ci.invalid"
           git config --global user.name "Theme Screenshots CI"
 
-      - name: Start redis
+      - name: Start Redis
         working-directory: discourse
-        run: redis-server /etc/redis/redis.conf &
+        run: |
+          redis-server /etc/redis/redis.conf --daemonize yes --logfile ""
+          if [[ "$(redis-cli -h 127.0.0.1 -p 6379 ping)" != PONG ]]; then
+            echo "::error::Redis did not respond to PING on 127.0.0.1:6379"
+            exit 1
+          fi
 
       - name: Start Postgres
         working-directory: discourse
