@@ -49,17 +49,6 @@ jobs:
     runs-on: ubuntu-latest
     container: discourse/discourse_test:release
     timeout-minutes: 120
-    services:
-      redis:
-        image: redis:7.4-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      DISCOURSE_REDIS_HOST: redis
-      DISCOURSE_MESSAGE_BUS_REDIS_HOST: redis
     defaults:
       run:
         shell: bash
@@ -85,6 +74,25 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE/discourse"
           git config --global user.email "ci@ci.invalid"
           git config --global user.name "Theme Screenshots CI"
+
+      - name: Start Redis
+        run: |
+          # Discourse's test environment uses localhost and ignores the Redis host override.
+          redis_dir=$(mktemp -d)
+          redis-server --bind 127.0.0.1 --port 6379 --daemonize yes \
+            --dir "$redis_dir" --pidfile "$redis_dir/redis.pid" \
+            --logfile "$redis_dir/redis.log" --save "" --appendonly no
+          for attempt in {1..15}; do
+            if [[ "$(redis-cli -h 127.0.0.1 -p 6379 ping 2>/dev/null)" == PONG ]]; then
+              exit 0
+            fi
+            sleep 1
+          done
+          if [[ -r "$redis_dir/redis.log" ]]; then
+            tail -n 30 "$redis_dir/redis.log"
+          fi
+          echo "::error::Redis did not respond on 127.0.0.1:6379"
+          exit 1
 
       - name: Start Postgres
         working-directory: discourse
