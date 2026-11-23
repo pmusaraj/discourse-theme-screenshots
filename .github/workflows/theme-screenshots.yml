@@ -49,6 +49,17 @@ jobs:
     runs-on: ubuntu-latest
     container: discourse/discourse_test:release
     timeout-minutes: 120
+    services:
+      redis:
+        image: redis:7.4-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DISCOURSE_REDIS_HOST: redis
+      DISCOURSE_MESSAGE_BUS_REDIS_HOST: redis
     defaults:
       run:
         shell: bash
@@ -74,15 +85,6 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE/discourse"
           git config --global user.email "ci@ci.invalid"
           git config --global user.name "Theme Screenshots CI"
-
-      - name: Start Redis
-        working-directory: discourse
-        run: |
-          redis-server /etc/redis/redis.conf --daemonize yes --logfile ""
-          if [[ "$(redis-cli -h 127.0.0.1 -p 6379 ping)" != PONG ]]; then
-            echo "::error::Redis did not respond to PING on 127.0.0.1:6379"
-            exit 1
-          fi
 
       - name: Start Postgres
         working-directory: discourse
