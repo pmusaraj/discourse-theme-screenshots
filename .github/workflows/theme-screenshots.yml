@@ -53,9 +53,6 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: Enable jemalloc
-        run: echo /usr/lib/libjemalloc.so.1 > /etc/ld.so.preload
-
       - name: Checkout screenshot project
         uses: actions/checkout@v6
         with:
@@ -93,6 +90,10 @@ jobs:
           fi
           echo "::error::Redis did not respond on 127.0.0.1:6379"
           exit 1
+
+      # Redis ships its own jemalloc; preloading another copy prevents it from starting.
+      - name: Enable jemalloc
+        run: echo /usr/lib/libjemalloc.so.1 > /etc/ld.so.preload
 
       - name: Start Postgres
         working-directory: discourse
